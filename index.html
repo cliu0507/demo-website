@@ -1,0 +1,127 @@
+<form id="uploadbanner" enctype="multipart/form-data" method="post" action="#">
+    <div>
+        <input id="uploadInput" name="myfile" type="file"/>
+        selected files: <span id="fileNum">0</span>;
+        total size: <span id="fileSize">0</span>
+    </div>
+    <input type="submit" value="submit" id="submit" />
+ </form>
+ <button id='testButton'>Click Me!</button>
+
+ <script>
+    function updateSize() {
+      let nBytes = 0,
+          oFiles = this.files,
+          nFiles = oFiles.length;
+      for (let nFileId = 0; nFileId < nFiles; nFileId++) {
+        nBytes += oFiles[nFileId].size;
+      }
+      let sOutput = nBytes + " bytes";
+      // optional code for multiples approximation
+      const aMultiples = ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
+      for (nMultiple = 0, nApprox = nBytes / 1024; nApprox > 1; nApprox /= 1024, nMultiple++) {
+        sOutput = nApprox.toFixed(3) + " " + aMultiples[nMultiple] + " (" + nBytes + " bytes)";
+      }
+      // end of optional code
+      document.getElementById("fileNum").innerHTML = nFiles;
+      document.getElementById("fileSize").innerHTML = nBytes;
+    }
+    
+    function getCall(){
+        console.log( 'Trying isitup' );
+        var request = new XMLHttpRequest()
+        request.open('GET', 'http://localhost:8081/isitup', false)
+        
+        request.onload = function () {
+            if (request.status >= 200 && request.status < 400){
+                console.log(request.responseText)
+                console.log(request.status)
+                console.log(this.response)
+            } else {
+                console.log('error')
+            }
+        }
+        request.send()
+        
+    }
+
+    function sendData( ) {
+        console.log( 'Sending data' );
+        let data = {test:'ok'}
+        const XHR = new XMLHttpRequest();
+
+        let urlEncodedData = "",
+            urlEncodedDataPairs = [],
+            name;
+
+        // Turn the data object into an array of URL-encoded key/value pairs.
+        for( name in data ) {
+            urlEncodedDataPairs.push( encodeURIComponent( name ) + '=' + encodeURIComponent( data[name] ) );
+        }
+
+        // Combine the pairs into a single string and replace all %-encoded spaces to 
+        // the '+' character; matches the behaviour of browser form submissions.
+        urlEncodedData = urlEncodedDataPairs.join( '&' ).replace( /%20/g, '+' );
+        console.log(urlEncodedData)
+        // Define what happens on successful data submission
+        XHR.addEventListener( 'load', function(event) {
+            alert( 'Yeah! Data sent and response loaded.' );
+        } );
+
+        // Define what happens in case of error
+        XHR.addEventListener( 'error', function(event) {
+            alert( 'Oops! Something went wrong.' );
+        } );
+
+        // Set up our request
+        XHR.open( 'POST', 'https://example.com/cors.php' );
+
+        // Add the required HTTP header for form data POST requests
+        XHR.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+        XHR.setRequestHeader('Access-Control-Allow-Origin', '*');
+
+        // Finally, send our data.
+        XHR.send( urlEncodedData );
+    }
+
+    document.getElementById("uploadInput").addEventListener("change", updateSize, false);
+    document.getElementById("testButton").addEventListener("click", getCall, false);
+    //document.getElementById('uploadbanner').addEventListener("click")
+
+    var form = document.getElementById('uploadbanner');
+
+    form.addEventListener('submit', function(ev){
+        //ev.preventDefault();
+        console.log("submit form");
+        const XHR = new XMLHttpRequest();
+        const FD = new FormData( form );
+        /*XHR.addEventListener( "load", function(event) {
+            alert( event.target.responseText );
+            });
+        XHR.addEventListener( "error", function( event ) {
+            alert( 'Oops! Something went wrong.' );
+            });
+        */
+        XHR.open( "POST", "http://localhost:8081/upload");
+        XHR.onload = function () {
+            if (XHR.status >= 200 && XHR.status < 400){
+                console.log(XHR.responseText)
+                console.log(XHR.status)
+                console.log(XHR.response)
+            } else {
+                console.log('error')
+            }
+        }
+        XHR.onerror = function (e)
+                {
+                    // There was a connection error of some sort.
+                    console.log(e);
+                };
+        XHR.send( FD );
+        ev.preventDefault();
+    }, false)
+
+    //this is another way of bind element with callback:
+    //const btn = document.querySelector('button');
+    //btn.addEventListener("click", sendData, false);
+</script>
