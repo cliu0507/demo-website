@@ -6,13 +6,15 @@
     </div>
     <input type="submit" value="Submit" id="submit" />
  </form>
+ <img id="uploadPreview"></img>
+ <br><br><br>
  <button id='checkJobStatus'>Check Job Status</button>
  <br>
  <q id="jobStatus">Job Status</q>
 
  <script>
     var jobId = 'undefined'
-    function updateSize() {
+    function previewUpload() {
       let nBytes = 0,
           oFiles = this.files,
           nFiles = oFiles.length;
@@ -26,8 +28,15 @@
         sOutput = nApprox.toFixed(3) + " " + aMultiples[nMultiple] + " (" + nBytes + " bytes)";
       }
       // end of optional code
-      document.getElementById("fileNum").innerHTML = nFiles;
-      document.getElementById("fileSize").innerHTML = nBytes;
+      document.getElementById("fileNum").innerHTML = nFiles + ' file(s)';
+      document.getElementById("fileSize").innerHTML = nBytes + ' bytes';
+
+      //display uploaded 
+      var oFReader = new FileReader();
+      oFReader.readAsDataURL(document.getElementById("uploadInput").files[0]);
+      oFReader.onload = function (oFREvent) {
+      document.getElementById("uploadPreview").src = oFREvent.target.result;
+        }
     }
     
     function getCall(){
@@ -87,7 +96,7 @@
         XHR.send( urlEncodedData );
     }
 
-    document.getElementById("uploadInput").addEventListener("change", updateSize, false);
+    document.getElementById("uploadInput").addEventListener("change", previewUpload, false);
     document.getElementById("checkJobStatus").addEventListener("click", getCall, false);
     //document.getElementById('uploadbanner').addEventListener("click")
 
