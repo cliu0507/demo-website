@@ -6,7 +6,8 @@
     </div>
     <input type="submit" value="Submit" id="submit" />
  </form>
- <button id='testButton'>Test Button!</button>
+ <button id='checkJobStatus'>Check Job Status</button>
+ <q id="jobStatus">Job Status</q>
 
  <script>
     function updateSize() {
@@ -28,15 +29,15 @@
     }
     
     function getCall(){
-        console.log( 'Trying isitup' );
+        console.log( 'Trying status call' );
         var request = new XMLHttpRequest()
-        request.open('GET', 'http://localhost:8081/isitup', false)
+        request.open('GET', 'http://localhost:8081/status/81b75960-04e9-11eb-b366-a9fc963874d1', false)
         
         request.onload = function () {
             if (request.status >= 200 && request.status < 400){
-                console.log(request.responseText)
                 console.log(request.status)
                 console.log(this.response)
+                document.getElementById("jobStatus").innerHTML = request.responseText
             } else {
                 console.log('error')
             }
@@ -85,7 +86,7 @@
     }
 
     document.getElementById("uploadInput").addEventListener("change", updateSize, false);
-    document.getElementById("testButton").addEventListener("click", getCall, false);
+    document.getElementById("checkJobStatus").addEventListener("click", getCall, false);
     //document.getElementById('uploadbanner').addEventListener("click")
 
     var form = document.getElementById('uploadbanner');
