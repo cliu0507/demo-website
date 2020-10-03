@@ -7,9 +7,11 @@
     <input type="submit" value="Submit" id="submit" />
  </form>
  <button id='checkJobStatus'>Check Job Status</button>
+ <br>
  <q id="jobStatus">Job Status</q>
 
  <script>
+    var jobId = 'undefined'
     function updateSize() {
       let nBytes = 0,
           oFiles = this.files,
@@ -31,7 +33,7 @@
     function getCall(){
         console.log( 'Trying status call' );
         var request = new XMLHttpRequest()
-        request.open('GET', 'http://localhost:8081/status/81b75960-04e9-11eb-b366-a9fc963874d1', false)
+        request.open('GET', 'http://localhost:8081/status/'+jobId, false)
         
         request.onload = function () {
             if (request.status >= 200 && request.status < 400){
@@ -106,9 +108,10 @@
         XHR.open( "POST", "http://localhost:8081/upload");
         XHR.onload = function () {
             if (XHR.status >= 200 && XHR.status < 400){
-                console.log(XHR.responseText)
                 console.log(XHR.status)
                 console.log(XHR.response)
+                console.log(XHR.getResponseHeader('content-type'))
+                jobId = XHR.response
             } else {
                 console.log('error')
             }
