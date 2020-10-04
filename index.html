@@ -1,3 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>DEMO</title>
+</head>
+
+<body>
+<h1>DEMO</h1>
+<button type="submit"  onClick="refreshPage()">Restart</button>
+
+<p>please upload image:</p>
 <form id="uploadbanner" enctype="multipart/form-data" method="post" action="#">
     <div>
         <input id="uploadInput" name="myfile" type="file"/>
@@ -6,14 +17,19 @@
     </div>
     <input type="submit" value="Submit" id="submit" />
  </form>
- <img id="uploadPreview"></img>
- <br><br><br>
+ <img id="uploadPreview" style = "width: 35vw; min-width: 600px;">Upload Preview</img>
+ <br><br>
  <button id='checkJobStatus'>Check Job Status</button>
  <br>
  <q id="jobStatus">Job Status</q>
-
- <script>
+ <br>
+ <img id="resultPreview" style = "width: 35vw; min-width: 600px;">Result Preview</img>
+ <br>
+</body>
+<script>
     var jobId = 'undefined'
+
+    // preview upload
     function previewUpload() {
       let nBytes = 0,
           oFiles = this.files,
@@ -31,7 +47,7 @@
       document.getElementById("fileNum").innerHTML = nFiles + ' file(s)';
       document.getElementById("fileSize").innerHTML = nBytes + ' bytes';
 
-      //display uploaded 
+      // display uploaded 
       var oFReader = new FileReader();
       oFReader.readAsDataURL(document.getElementById("uploadInput").files[0]);
       oFReader.onload = function (oFREvent) {
@@ -39,6 +55,7 @@
         }
     }
     
+    // status call
     function getCall(){
         console.log( 'Trying status call' );
         var request = new XMLHttpRequest()
@@ -47,82 +64,47 @@
         request.onload = function () {
             if (request.status >= 200 && request.status < 400){
                 console.log(request.status)
-                console.log(this.response)
+                console.log(request.getAllResponseHeaders())
                 document.getElementById("jobStatus").innerHTML = request.responseText
+
+                let body = this.response
+                let b, fields;
+                b = Boundary_parse(body)
+                fields = MultiPart_parse(body, 'multipart/form-body; boundary=' + b);
+                
+                // if the job is completed and result is ready
+                if (fields.hasOwnProperty('jobStatus') && fields['jobStatus'] == 'completed'){
+                    resultFileBase64 = fields['resultFileBase64']
+                    document.getElementById("resultPreview").src = 'data:image/png;base64,' + resultFileBase64;
+                    document.getElementById("jobStatus").innerHTML = fields['jobId'] + ' : ' + fields['jobStatus']
+                }
+                // if the job is not completed
+                else{
+                    document.getElementById("jobStatus").innerHTML = fields['jobId'] + ' : ' + fields['jobStatus']
+                }
             } else {
-                console.log('error')
+                console.log('error to call status call')
             }
         }
         request.send()
         
     }
 
-    function sendData( ) {
-        console.log( 'Sending data' );
-        let data = {test:'ok'}
-        const XHR = new XMLHttpRequest();
-
-        let urlEncodedData = "",
-            urlEncodedDataPairs = [],
-            name;
-
-        // Turn the data object into an array of URL-encoded key/value pairs.
-        for( name in data ) {
-            urlEncodedDataPairs.push( encodeURIComponent( name ) + '=' + encodeURIComponent( data[name] ) );
-        }
-
-        // Combine the pairs into a single string and replace all %-encoded spaces to 
-        // the '+' character; matches the behaviour of browser form submissions.
-        urlEncodedData = urlEncodedDataPairs.join( '&' ).replace( /%20/g, '+' );
-        console.log(urlEncodedData)
-        // Define what happens on successful data submission
-        XHR.addEventListener( 'load', function(event) {
-            alert( 'Yeah! Data sent and response loaded.' );
-        } );
-
-        // Define what happens in case of error
-        XHR.addEventListener( 'error', function(event) {
-            alert( 'Oops! Something went wrong.' );
-        } );
-
-        // Set up our request
-        XHR.open( 'POST', 'https://example.com/cors.php' );
-
-        // Add the required HTTP header for form data POST requests
-        XHR.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
-        XHR.setRequestHeader('Access-Control-Allow-Origin', '*');
-
-        // Finally, send our data.
-        XHR.send( urlEncodedData );
-    }
-
-    document.getElementById("uploadInput").addEventListener("change", previewUpload, false);
-    document.getElementById("checkJobStatus").addEventListener("click", getCall, false);
-    //document.getElementById('uploadbanner').addEventListener("click")
-
-    var form = document.getElementById('uploadbanner');
-
-    form.addEventListener('submit', function(ev){
+    // upload post call
+    function submitForm(ev){
         //ev.preventDefault();
         console.log("submit form");
         const XHR = new XMLHttpRequest();
         const FD = new FormData( form );
-        /*XHR.addEventListener( "load", function(event) {
-            alert( event.target.responseText );
-            });
-        XHR.addEventListener( "error", function( event ) {
-            alert( 'Oops! Something went wrong.' );
-            });
-        */
         XHR.open( "POST", "http://localhost:8081/upload");
         XHR.onload = function () {
             if (XHR.status >= 200 && XHR.status < 400){
                 console.log(XHR.status)
-                console.log(XHR.response)
-                console.log(XHR.getResponseHeader('content-type'))
-                jobId = XHR.response
+                console.log('jobId: ' + XHR.response)
+                //console.log(XHR.getResponseHeader('content-type'))
+                jobId = XHR.response // set jobId variable
             } else {
-                console.log('error')
+                console.log('error to call upload post api')
             }
         }
         XHR.onerror = function (e)
@@ -132,9 +114,87 @@
                 };
         XHR.send( FD );
         ev.preventDefault();
-    }, false)
+    }
 
-    //this is another way of bind element with callback:
-    //const btn = document.querySelector('button');
-    //btn.addEventListener("click", sendData, false);
+    document.getElementById("uploadInput").addEventListener("change", previewUpload, false);
+    document.getElementById("checkJobStatus").addEventListener("click", getCall, false);
+    
+    var form = document.getElementById('uploadbanner');
+    form.addEventListener('submit', submitForm, false)
+
+    // helper function to parse multipart response
+    function MultiPart_parse(body, contentType) {
+        // Examples for content types:
+        //      multipart/form-data; boundary="----7dd322351017c"; ...
+        //      multipart/form-data; boundary=----7dd322351017c; ...
+        var m = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+
+        if (!m) {
+            throw new Error('Bad content-type header, no multipart boundary');
+        }
+
+        let s, fieldName;
+        let boundary = m[1] || m[2];
+
+        function Header_parse(header) {
+            var headerFields = {};
+            var matchResult = header.match(/^.*name="([^"]*)"$/);
+            if (matchResult) headerFields.name = matchResult[1];
+            return headerFields;
+        }
+
+        function rawStringToBuffer(str) {
+            var idx, len = str.length,
+            arr = new Array(len);
+            for (idx = 0; idx < len; ++idx) {
+            arr[idx] = str.charCodeAt(idx) & 0xFF;
+            }
+            return new Uint8Array(arr).buffer;
+        }
+
+        // \r\n is part of the boundary.
+        boundary = '\r\n--' + boundary;
+
+        var isRaw = typeof(body) !== 'string';
+        if (isRaw) {
+            var view = new Uint8Array(body);
+            s = String.fromCharCode.apply(null, view);
+        } else {
+            s = body;
+        }
+
+        // Prepend what has been stripped by the body parsing mechanism.
+        s = '\r\n' + s;
+
+        var parts = s.split(new RegExp(boundary)),
+            partsByName = {};
+
+        // First part is a preamble, last part is closing '--'
+        for (var i = 1; i < parts.length - 1; i++) {
+            var subparts = parts[i].split('\r\n\r\n');
+            var headers = subparts[0].split('\r\n');
+            for (var j = 1; j < headers.length; j++) {
+            var headerFields = Header_parse(headers[j]);
+            if (headerFields.name) {
+                fieldName = headerFields.name;
+            }
+            }
+
+            partsByName[fieldName] = isRaw ? rawStringToBuffer(subparts[1]) : subparts[1];
+        }
+
+        return partsByName;
+        }
+    
+    // helper function to parse boundary for multipart response from server
+    function Boundary_parse(body) {
+        var bndry = body.split('Content-Disposition: form-data;')[0];
+        return bndry.trim().slice(2);
+        }
+
+    // helper function to reload page
+    function refreshPage(){
+        window.location.reload();
+    } 
 </script>
+</html>
