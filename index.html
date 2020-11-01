@@ -2,29 +2,55 @@
 <html lang="en">
 <head>
     <title>DEMO</title>
+
+    <style>
+        * {
+          box-sizing: border-box;
+        }
+        
+        /* Create two equal columns that floats next to each other */
+        .column {
+          float: left;
+          width: 50%;
+          padding: 10px;
+          height: 300px; /* Should be removed. Only for demonstration */
+        }
+        
+        /* Clear floats after the columns */
+        .row:after {
+          content: "";
+          display: table;
+          clear: both;
+        }
+        </style>
 </head>
 
 <body>
 <h1>DEMO</h1>
 <button type="submit"  onClick="refreshPage()">Restart</button>
-
 <p>please upload image:</p>
-<form id="uploadbanner" enctype="multipart/form-data" method="post" action="#">
-    <div>
-        <input id="uploadInput" name="myfile" type="file"/>
-        selected files: <span id="fileNum">0</span>;
-        total size: <span id="fileSize">0</span>
+<div class="row">
+    <div class="column">
+        <form id="uploadbanner" enctype="multipart/form-data" method="post" action="#">
+            <div>
+                <input id="uploadInput" name="myfile" type="file"/>
+                selected files: <span id="fileNum">0</span>;
+                total size: <span id="fileSize">0</span>
+            </div>
+            <input type="submit" value="Submit" id="submit" />
+        </form>
+        <img id="uploadPreview" style = "width: 35vw; min-width: 600px;">Upload Preview</img>
+        <br><br>
     </div>
-    <input type="submit" value="Submit" id="submit" />
- </form>
- <img id="uploadPreview" style = "width: 35vw; min-width: 600px;">Upload Preview</img>
- <br><br>
- <button id='checkJobStatus'>Check Job Status</button>
- <br>
- <q id="jobStatus">Job Status</q>
- <br>
- <img id="resultPreview" style = "width: 35vw; min-width: 600px;">Result Preview</img>
- <br>
+    <div class="column">
+        <button id='checkJobStatus'>Check Job Status</button>
+        <br>
+        <q id="jobStatus">Job Status</q>
+        <br>
+        <img id="resultPreview" style = "width: 35vw; min-width: 600px;">Result Preview</img>
+        <br>
+    </div>
+</div>
 </body>
 <script>
     var jobId = 'undefined'
