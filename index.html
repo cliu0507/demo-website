@@ -96,7 +96,7 @@
         console.log("submit form");
         const XHR = new XMLHttpRequest();
         const FD = new FormData( form );
-        XHR.open( "POST", "http://localhost:8081/upload");
+        XHR.open( "POST", "http://localhost:8081/domo");
         XHR.onload = function () {
             if (XHR.status >= 200 && XHR.status < 400){
                 console.log(XHR.status)
